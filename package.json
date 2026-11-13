@@ -12,7 +12,7 @@
     "test": "node --test \"test/*.test.js\"",
     "test:electron": "electron test/electron/driver-smoke.js",
     "test:app": "node test/electron/app-e2e.js",
-    "dist": "electron-builder --mac",
+    "dist": "electron-builder --mac -c.directories.output=\"$HOME/BuyBot-build\"",
     "pack": "electron-builder --mac --dir"
   },
   "build": {

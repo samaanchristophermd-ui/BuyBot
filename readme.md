@@ -38,7 +38,7 @@ npm install
 npm run dist
 ```
 
-The app appears in `dist/`. To run it without packaging, use `npm start`.
+The app appears in a `BuyBot-build` folder in your home folder. (It is built there rather than inside the project because folders synced by iCloud, such as Desktop and Documents, attach Finder data to files that makes Apple's signing step fail.) To run it without packaging, use `npm start`.
 
 ## Using it
 
