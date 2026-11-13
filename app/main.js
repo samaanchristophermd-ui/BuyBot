@@ -13,7 +13,7 @@ if (process.env.BUYBOT_USER_DATA) app.setPath('userData', process.env.BUYBOT_USE
 
 const PARTITION = 'persist:shops' // one cookie jar shared by every store window
 const MIN_INTERVAL_SEC = 10
-const ACTIVE = new Set(['starting', 'monitoring', 'in_stock', 'adding', 'cart', 'checkout', 'needs_attention'])
+const ACTIVE = new Set(['starting', 'monitoring', 'in_stock', 'adding', 'cart', 'checkout', 'ordering', 'needs_attention'])
 
 let mainWindow = null
 let quitting = false
@@ -26,7 +26,7 @@ const logs = []
 // persistence --------------------------------------------------------------
 
 const storeFile = () => path.join(app.getPath('userData'), 'buybot.json')
-const PERSISTED = ['id', 'url', 'retailerId', 'productId', 'name', 'maxPrice', 'intervalSec']
+const PERSISTED = ['id', 'url', 'retailerId', 'productId', 'name', 'maxPrice', 'intervalSec', 'autoBuy']
 
 function loadTasks() {
   try {
@@ -126,12 +126,14 @@ function openAccount(retailerId) {
 
 const findTask = (id) => tasks.find((t) => t.id === id)
 
-function addTask({ url, name, maxPrice, intervalSec }) {
+function addTask({ url, name, maxPrice, intervalSec, autoBuy }) {
   const product = describeProduct(url)
   if (!product) return { ok: false, error: 'That does not look like a web link. Paste the full product page address.' }
   if (tasks.some((t) => t.url === product.url)) return { ok: false, error: 'You are already watching that link.' }
   const price = Number(maxPrice)
   const every = Number(intervalSec)
+  if (autoBuy && !(price > 0)) return { ok: false, error: 'Set a max price to use automatic ordering. The order is only placed if the total, including tax and shipping, is at or under it.' }
+  if (autoBuy && !product.productId) return { ok: false, error: 'Automatic ordering needs a product page link from Amazon, Best Buy, Target, Walmart or Costco.' }
   const task = {
     id: crypto.randomUUID(),
     url: product.url,
@@ -140,6 +142,7 @@ function addTask({ url, name, maxPrice, intervalSec }) {
     name: String(name || '').trim().slice(0, 80),
     maxPrice: price > 0 ? price : null,
     intervalSec: Math.max(MIN_INTERVAL_SEC, every > 0 ? every : 30),
+    autoBuy: !!autoBuy,
     phase: 'idle',
     message: 'Not running',
     checks: 0
@@ -184,17 +187,17 @@ function startTask(id) {
     log(task, message)
     win.show()
     win.focus()
-    if (app.dock) app.dock.bounce(kind === 'ready' ? 'critical' : 'informational')
+    if (app.dock) app.dock.bounce(kind === 'ready' || kind === 'ordered' ? 'critical' : 'informational')
     shell.beep()
     if (Notification.isSupported()) {
-      const titles = { ready: 'Ready to check out', captcha: 'Verification needed', signin: 'Sign-in needed' }
+      const titles = { ordered: 'Order placed', ready: 'Ready to check out', captcha: 'Verification needed', signin: 'Sign-in needed' }
       const n = new Notification({ title: `${titles[kind]}: ${displayName(task)}`, body: message })
       n.on('click', () => !win.isDestroyed() && (win.show(), win.focus()))
       n.show()
     }
   })
 
-  log(task, `Started watching (${retailer.name}, every ~${task.intervalSec}s${task.maxPrice ? `, max $${task.maxPrice}` : ''}).`)
+  log(task, `Started watching (${retailer.name}, every ~${task.intervalSec}s${task.maxPrice ? `, max $${task.maxPrice}` : ''}${task.autoBuy ? ', automatic ordering ON' : ''}).`)
   runner.start().then(() => {
     // After a hand-over the window stays open for the user to finish checkout.
     if (task.phase !== 'ready' && live.get(id) && live.get(id).runner === runner) {

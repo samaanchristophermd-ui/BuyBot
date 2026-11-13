@@ -14,6 +14,7 @@ const DEFAULT_TIMING = {
   humanPollMs: 2000, // how often to re-check while waiting for the user
   blockedReloadMs: 120000, // reload a challenge page nobody has solved after this long
   retryAddMs: 1500,
+  orderWaitMs: 30000, // wait for a confirmation page after clicking Place Order
   minIntervalMs: 10000, // never hammer a retailer faster than this
   jitter: 0.2
 }
@@ -26,8 +27,9 @@ const DEFAULT_TIMING = {
  *   click(x, y) -> Promise
  * (Electron in the app, Playwright in the tests.)
  *
- * Deliberately stops before the final "Place order" click: the user reviews
- * the total and confirms the purchase themselves.
+ * By default it stops before the final "Place order" click so the user can
+ * review the total. With task.autoBuy it clicks it, once, if the order total
+ * is at or under task.maxPrice (see placeOrder).
  *
  * Events: 'status' {phase, message, ...}, 'log' string,
  *         'attention' {kind: 'captcha'|'signin'|'ready', message}
@@ -296,6 +298,7 @@ class TaskRunner extends EventEmitter {
       }
       if (p.placeOrder) {
         const max = Number(task.maxPrice) || 0
+        if (task.autoBuy) return this.placeOrder(p, cart, checkoutKeys)
         let message = 'Ready: review the order and click Place Order.'
         if (p.total != null) {
           message = `Ready: order total $${p.total.toFixed(2)}. Review it and click Place Order.`
@@ -311,6 +314,56 @@ class TaskRunner extends EventEmitter {
     }
     if (this.stopped) return false
     return this.ready('In your cart. Finish checkout in the browser window.')
+  }
+
+  /**
+   * Opt-in: click Place Order. Only when every safety check passes, and only
+   * ever once per task, so a slow page can never produce a second order.
+   */
+  async placeOrder(first, cart, keys) {
+    const { task } = this
+    const max = Number(task.maxPrice) || 0
+    // Totals often render a moment after the button; give them a chance.
+    let p = first
+    for (let i = 0; i < 6 && !this.stopped && p.total == null; i++) {
+      await this.sleep(this.t.pollMs)
+      p = (await this.probe(keys)) || p
+    }
+    if (this.stopped) return false
+    const refuse = (why) => this.ready(`Not placed automatically: ${why} Review the order and click Place Order yourself.`)
+    if (!max) return refuse('no max price is set.')
+    if (!task.productId || cart.hasProduct !== true) return refuse('could not confirm the cart holds this exact item.')
+    if (p.total == null) return refuse('the order total could not be read.')
+    if (p.total > max) return refuse(`the order total $${p.total.toFixed(2)} (with tax and shipping) is above your $${max.toFixed(2)} limit.`)
+    if (!p.placeOrder) return refuse('the Place Order button went away.')
+
+    const amount = `$${p.total.toFixed(2)}`
+    this.status('ordering', `Placing order for ${amount}…`)
+    this.log(`Clicking "${p.placeOrder.text}" (total ${amount}).`)
+    const before = p.url
+    await this.click('placeOrder', p.placeOrder)
+
+    const end = Date.now() + this.t.orderWaitMs
+    let confirmed = false
+    let moved = false
+    while (!this.stopped && Date.now() < end) {
+      await this.sleep(this.t.pollMs * 2)
+      const q = await this.probe(['blocked', 'ordered', 'placeOrder'])
+      if (!q) continue
+      if (q.blocked) break
+      if (q.ordered) {
+        confirmed = true
+        break
+      }
+      moved = q.url !== before || !q.placeOrder
+    }
+    let message
+    if (confirmed) message = `Order placed for ${amount}. Check your email for the store's confirmation.`
+    else if (moved) message = `Clicked Place Order (${amount}), but no confirmation page was recognised. Check the browser window and your email.`
+    else message = `Clicked Place Order (${amount}), but the page did not change. The store may need something more from you: check the browser window. It was not clicked again.`
+    this.status('ready', message, { ordered: confirmed })
+    this.emit('attention', { kind: confirmed ? 'ordered' : 'ready', message })
+    return true
   }
 
   ready(message) {

@@ -299,3 +299,17 @@ button.danger {
   color: var(--text);
   font-weight: 600;
 }
+
+.check {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin-top: 12px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.check input {
+  width: auto;
+  margin-top: 3px;
+}

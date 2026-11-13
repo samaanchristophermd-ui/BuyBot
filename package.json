@@ -22,6 +22,7 @@
       "app/**/*",
       "package.json"
     ],
+    "afterPack": "build/after-pack.js",
     "directories": {
       "buildResources": "build",
       "output": "dist"

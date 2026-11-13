@@ -273,7 +273,14 @@ const generic = {
 }
 
 const RETAILERS = [amazon, bestbuy, target, walmart, costco]
-for (const r of [...RETAILERS, generic]) r.spec.blocked = BLOCKED
+const ORDERED = {
+  url: ['thank-?you', 'order-?confirmation', '/buy/thankyou', 'orderconfirm'],
+  text: ['thank(s| you) for your order', 'order (has been |was |is )?(placed|confirmed|received)', 'we(\'ve| have) received your order']
+}
+for (const r of [...RETAILERS, generic]) {
+  r.spec.blocked = BLOCKED
+  r.spec.ordered = ORDERED
+}
 
 function parseUrl(input) {
   try {

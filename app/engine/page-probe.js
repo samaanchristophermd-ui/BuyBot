@@ -152,7 +152,7 @@ function pageProbe(spec) {
     out.blocked = has(spec.blocked)
     if (out.blocked) return out // never poke at a challenge page
   }
-  for (const key of ['signIn', 'outOfStock', 'added', 'cartEmpty']) {
+  for (const key of ['signIn', 'outOfStock', 'added', 'cartEmpty', 'ordered']) {
     if (key in spec) out[key] = has(spec[key])
   }
   for (const key of ['buy', 'decline', 'checkout', 'placeOrder']) {

@@ -14,7 +14,7 @@ BuyBot is for buying one thing for yourself. It is not built for buying in bulk 
 
 Things it deliberately does not do:
 
-- **It never places the order itself.** The last click is yours.
+- **It does not place the order unless you tell it to.** By default the last click is yours. See *Automatic ordering* below.
 - **It never sees or stores your card.** There is no card field anywhere in the app. The only file it writes is your watch list (`~/Library/Application Support/BuyBot/buybot.json`).
 - **It does not solve captchas or hide from the stores.** If a store shows a "verify you are human" page, BuyBot stops, shows you the window, and carries on once you have cleared it.
 
@@ -47,6 +47,17 @@ The app appears in `dist/`. To run it without packaging, use `npm start`.
 - Each product gets its own store window, hidden until it needs you. *Show window* reveals it at any time.
 - Closing the main window leaves BuyBot watching in the Dock. The Mac is kept awake while anything is being watched.
 - Links from any other shop work too, in a simpler mode: BuyBot clicks the page's Add to Cart button and hands over straight away.
+
+## Automatic ordering
+
+Tick **Place the order automatically** when adding a product and BuyBot will also click Place Order. It is off by default and only acts when all of these hold:
+
+- you set a max price, and the **order total including tax and shipping** is at or under it, so set the limit with tax in mind;
+- the cart is confirmed to contain the exact product you linked;
+- the total on the review page can be read;
+- the store's Place Order button is enabled (if the store asks for a card security code or anything else, BuyBot stops and calls you).
+
+It clicks once and never retries, so a slow page cannot produce a second order. If any check fails it stops at the review page as usual and tells you why. Anything else already in your cart at that store will be part of the order, so empty the cart first.
 
 ## What has and has not been verified
 

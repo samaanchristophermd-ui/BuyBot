@@ -84,6 +84,7 @@ function createShop(skinName, opts = {}) {
     total: '531.24',
     captcha: false,
     signInAtCheckout: false,
+    silentOrder: false, // order click gives no confirmation page
     dropAdds: 0, // silently ignore this many add-to-cart requests
     productId: 'SKU12345',
     ...opts
@@ -144,7 +145,7 @@ function createShop(skinName, opts = {}) {
       }
       return html('Checkout', `<main>${skin.total(state.total)}
         <div id="po">${skin.place.replace('TOTAL', state.total)}</div></main>
-        <script>document.getElementById('po').firstElementChild.addEventListener('click', function () { fetch('/order') })</script>`)
+        <script>document.getElementById('po').firstElementChild.addEventListener('click', function () { fetch('/order').then(function () { if (!${state.silentOrder}) document.querySelector('main').innerHTML = '<h1>Thank you for your order</h1>' }) })</script>`)
     }
     if (path === '/order') {
       state.ordersPlaced++

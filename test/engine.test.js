@@ -158,3 +158,54 @@ test('stop() ends monitoring promptly', { skip }, async () => {
   assert.equal(s.shop.state.decoyClicks, 0, 'did not click the Out of Stock button')
   await s.close()
 })
+
+// automatic ordering ---------------------------------------------------------
+
+const AUTO = { autoBuy: true, maxPrice: 550 }
+const ORDER_FAST = { orderWaitMs: 1500 }
+
+test('auto-buy: places exactly one order when the total is within the limit', { skip }, async () => {
+  const s = await scenario('bestbuy', { shopOpts: { inStockAfter: 1 }, task: AUTO, timing: ORDER_FAST })
+  await s.done
+  const last = s.events.statuses.at(-1)
+  assert.equal(last.phase, 'ready')
+  assert.equal(last.ordered, true)
+  assert.match(last.message, /Order placed for \$531\.24/)
+  assert.equal(s.shop.state.ordersPlaced, 1)
+  assert.equal(s.shop.state.cart, 1)
+  assert.equal(s.events.attention.at(-1).kind, 'ordered')
+  await s.close()
+})
+
+test('auto-buy: tax and shipping pushing the total over the limit blocks the order', { skip }, async () => {
+  const s = await scenario('amazon', { task: { autoBuy: true, maxPrice: 510 }, timing: ORDER_FAST })
+  await s.done
+  assert.match(s.events.statuses.at(-1).message, /Not placed automatically: the order total \$531\.24/)
+  assert.equal(s.shop.state.ordersPlaced, 0)
+  await s.close()
+})
+
+test('auto-buy: refuses without a max price, an unreadable total, or an unconfirmed item', { skip }, async () => {
+  const cases = [
+    [{ task: { autoBuy: true } }, /no max price/],
+    [{ task: AUTO, shopOpts: { total: 'TBD' } }, /total could not be read/],
+    [{ task: AUTO, shopOpts: { productId: 'SOMETHING-ELSE' } }, /could not confirm the cart/]
+  ]
+  for (const [opts, expected] of cases) {
+    const s = await scenario('target', { ...opts, timing: ORDER_FAST })
+    await s.done
+    assert.match(s.events.statuses.at(-1).message, expected)
+    assert.equal(s.shop.state.ordersPlaced, 0)
+    await s.close()
+  }
+})
+
+test('auto-buy: never clicks Place Order twice when no confirmation appears', { skip }, async () => {
+  const s = await scenario('walmart', { task: AUTO, shopOpts: { silentOrder: true }, timing: ORDER_FAST })
+  await s.done
+  const last = s.events.statuses.at(-1)
+  assert.match(last.message, /page did not change.*not clicked again/s)
+  assert.notEqual(last.ordered, true)
+  assert.equal(s.shop.state.ordersPlaced, 1)
+  await s.close()
+})

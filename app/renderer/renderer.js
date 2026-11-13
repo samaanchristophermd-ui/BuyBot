@@ -12,6 +12,7 @@ const PHASES = {
   adding: ['Adding to cart', 'working'],
   cart: ['In cart', 'working'],
   checkout: ['Checking out', 'working'],
+  ordering: ['Placing order', 'working'],
   needs_attention: ['Needs you', 'attention'],
   ready: ['Ready for you', 'ready'],
   error: ['Error', 'error']
@@ -32,10 +33,12 @@ function el(tag, props = {}, children = []) {
 const time = (ms) => new Date(ms).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit', second: '2-digit' })
 
 function renderTask(t) {
-  const [label, tone] = PHASES[t.phase] || [t.phase, 'idle']
+  let [label, tone] = PHASES[t.phase] || [t.phase, 'idle']
+  if (t.phase === 'ready' && t.ordered) label = 'Order placed'
   const facts = [t.retailerName]
   if (t.maxPrice) facts.push(`max $${Number(t.maxPrice).toFixed(2)}`)
   facts.push(`every ${t.intervalSec}s`)
+  if (t.autoBuy) facts.push('orders automatically')
   if (t.price != null) facts.push(`last price $${Number(t.price).toFixed(2)}`)
   if (t.lastChecked) facts.push(`checked ${time(t.lastChecked)}${t.checks ? ` (${t.checks}×)` : ''}`)
 
@@ -100,7 +103,8 @@ $('add-form').addEventListener('submit', async (e) => {
     url: $('url').value,
     name: $('name').value,
     maxPrice: $('maxPrice').value,
-    intervalSec: $('interval').value
+    intervalSec: $('interval').value,
+    autoBuy: $('autoBuy').checked
   })
   if (!result.ok) {
     error.textContent = result.error
@@ -110,6 +114,7 @@ $('add-form').addEventListener('submit', async (e) => {
   $('url').value = ''
   $('name').value = ''
   $('maxPrice').value = ''
+  $('autoBuy').checked = false
   api.startTask(result.id)
 })
 
