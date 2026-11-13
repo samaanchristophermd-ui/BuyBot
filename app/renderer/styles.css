@@ -1,0 +1,301 @@
+:root {
+  --bg: #f4f4f6;
+  --card: #ffffff;
+  --text: #1c1c1f;
+  --muted: #6c6c75;
+  --line: #e2e2e7;
+  --accent: #2563eb;
+  --accent-text: #ffffff;
+  --field: #ffffff;
+  --ok: #15803d;
+  --ok-bg: #dcfce7;
+  --warn: #b45309;
+  --warn-bg: #fef3c7;
+  --bad: #b91c1c;
+  --bad-bg: #fee2e2;
+  --info: #1d4ed8;
+  --info-bg: #dbeafe;
+  --idle-bg: #ececf0;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #19191c;
+    --card: #232327;
+    --text: #f1f1f3;
+    --muted: #9c9ca6;
+    --line: #36363c;
+    --accent: #4f83f1;
+    --field: #1b1b1f;
+    --ok: #86efac;
+    --ok-bg: #14321f;
+    --warn: #fcd34d;
+    --warn-bg: #3a2c0b;
+    --bad: #fca5a5;
+    --bad-bg: #3b1616;
+    --info: #93c5fd;
+    --info-bg: #172a4a;
+    --idle-bg: #2e2e33;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 14px/1.45 -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+}
+
+.titlebar {
+  -webkit-app-region: drag;
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 14px 24px 10px 88px; /* room for the macOS window buttons */
+  border-bottom: 1px solid var(--line);
+  position: sticky;
+  top: 0;
+  background: var(--bg);
+  z-index: 2;
+}
+
+h1 {
+  font-size: 16px;
+  margin: 0;
+}
+
+.summary {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+main {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 20px 24px 40px;
+  display: grid;
+  gap: 20px;
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 16px 18px 18px;
+}
+
+h2 {
+  font-size: 14px;
+  margin: 0 0 12px;
+}
+
+.section-title {
+  margin: 4px 0 10px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 11.5px;
+}
+
+.row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.field {
+  display: grid;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.field.grow {
+  flex: 1 1 160px;
+}
+
+.field em {
+  font-style: normal;
+  opacity: 0.7;
+}
+
+input {
+  font: inherit;
+  color: var(--text);
+  background: var(--field);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 7px 9px;
+  width: 100%;
+  min-width: 0;
+}
+
+.field:not(.grow):not(.wide) input {
+  width: 130px;
+}
+
+input:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+button {
+  font: inherit;
+  color: var(--text);
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 7px 13px;
+  cursor: pointer;
+}
+
+button:hover {
+  border-color: var(--muted);
+}
+
+button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-text);
+  font-weight: 600;
+}
+
+button.danger {
+  color: var(--bad);
+}
+
+.hint {
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.error {
+  margin: 10px 0 0;
+  color: var(--bad);
+}
+
+.accounts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.tasks {
+  display: grid;
+  gap: 10px;
+}
+
+.task {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 14px 16px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 6px 16px;
+  align-items: start;
+}
+
+.task.attention {
+  border-color: var(--warn);
+}
+
+.task.ready {
+  border-color: var(--ok);
+}
+
+.task-title {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.task-meta {
+  color: var(--muted);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.task-status {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 8px;
+  align-items: baseline;
+  flex-wrap: wrap;
+}
+
+.pill {
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+  background: var(--idle-bg);
+  color: var(--muted);
+}
+
+.pill.watching {
+  background: var(--info-bg);
+  color: var(--info);
+}
+
+.pill.working,
+.pill.ready {
+  background: var(--ok-bg);
+  color: var(--ok);
+}
+
+.pill.attention {
+  background: var(--warn-bg);
+  color: var(--warn);
+}
+
+.pill.error {
+  background: var(--bad-bg);
+  color: var(--bad);
+}
+
+.task-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.task-actions button {
+  padding: 5px 10px;
+  font-size: 13px;
+}
+
+.empty {
+  color: var(--muted);
+  margin: 0;
+}
+
+.log {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 10px 14px;
+  max-height: 220px;
+  overflow-y: auto;
+  font: 12px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace;
+  color: var(--muted);
+  min-height: 44px;
+}
+
+.log div {
+  overflow-wrap: anywhere;
+}
+
+.log b {
+  color: var(--text);
+  font-weight: 600;
+}

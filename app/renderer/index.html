@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self'" />
+    <title>BuyBot</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="titlebar">
+      <h1>BuyBot</h1>
+      <span id="summary" class="summary"></span>
+    </header>
+
+    <main>
+      <section class="card">
+        <h2>Watch a product</h2>
+        <form id="add-form" autocomplete="off">
+          <label class="field wide">
+            <span>Product page link</span>
+            <input id="url" type="url" placeholder="https://www.bestbuy.com/site/…" required />
+          </label>
+          <div class="row">
+            <label class="field grow">
+              <span>Name <em>optional</em></span>
+              <input id="name" type="text" maxlength="80" placeholder="e.g. PS5 Pro" />
+            </label>
+            <label class="field">
+              <span>Max price $ <em>optional</em></span>
+              <input id="maxPrice" type="number" min="0" step="0.01" placeholder="No limit" />
+            </label>
+            <label class="field">
+              <span>Check every (sec)</span>
+              <input id="interval" type="number" min="10" step="1" value="30" />
+            </label>
+            <button type="submit" class="primary">Add</button>
+          </div>
+          <p id="add-error" class="error" hidden></p>
+        </form>
+      </section>
+
+      <section class="card">
+        <h2>Store accounts</h2>
+        <p class="hint">
+          Sign in once to each store you use, and make sure a default shipping address and payment card are saved in
+          your account there. BuyBot uses those at checkout and never sees or stores your card details.
+        </p>
+        <div id="accounts" class="accounts"></div>
+      </section>
+
+      <section>
+        <h2 class="section-title">Watching</h2>
+        <div id="tasks" class="tasks"></div>
+        <p id="empty" class="empty">Nothing yet. Paste a product link above to start.</p>
+      </section>
+
+      <section>
+        <h2 class="section-title">Activity</h2>
+        <div id="log" class="log"></div>
+      </section>
+    </main>
+
+    <script src="renderer.js"></script>
+  </body>
+</html>

@@ -1,61 +1,49 @@
 {
-  "name": "BuyBot",
-  "version": "1.0.0",
-  "description": "BuyBot is a web scraper and product purchase tool.",
+  "name": "buybot",
+  "productName": "BuyBot",
+  "version": "2.0.0",
+  "description": "Stock monitor and checkout assistant for Amazon, Best Buy, Target, Walmart and Costco.",
   "private": true,
-  "types": "build/types/types.d.ts",
-  "bin": {
-    "BuyBot": "bin/BuyBot"
-  },
-  "scripts": {
-    "format": "prettier --write **/*.{js,ts,tsx,json}",
-    "lint": "tslint -p .",
-    "clean-build": "rm -rf ./build",
-    "compile": "tsc -p .",
-    "copy-templates": "if [ -e ./src/templates ]; then cp -a ./src/templates ./build/; fi",
-    "build": "yarn format && yarn lint && yarn clean-build && yarn compile && yarn copy-templates",
-    "prepublishOnly": "yarn build",
-    "test": "jest",
-    "watch": "jest --watch",
-    "snapupdate": "jest --updateSnapshot",
-    "coverage": "jest --coverage"
-  },
-  "files": [
-    "tsconfig.json",
-    "tslint.json",
-    "build",
-    "LICENSE",
-    "readme.md",
-    "docs",
-    "bin"
-  ],
   "license": "MIT",
-  "dependencies": {
-    "@types/puppeteer": "^5.4.0",
-    "gluegun": "latest",
-    "node-notifier": "^8.0.0",
-    "node-schedule": "^1.3.2",
-    "puppeteer": "^5.4.1",
-    "yarn": "^1.22.10"
+  "author": "BuyBot contributors",
+  "main": "app/main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test \"test/*.test.js\"",
+    "test:electron": "electron test/electron/driver-smoke.js",
+    "test:app": "node test/electron/app-e2e.js",
+    "dist": "electron-builder --mac",
+    "pack": "electron-builder --mac --dir"
+  },
+  "build": {
+    "appId": "com.buybot.app",
+    "productName": "BuyBot",
+    "files": [
+      "app/**/*",
+      "package.json"
+    ],
+    "directories": {
+      "buildResources": "build",
+      "output": "dist"
+    },
+    "mac": {
+      "category": "public.app-category.utilities",
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "icon": "build/icon.png",
+      "identity": "-",
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false
+    },
+    "dmg": {
+      "sign": false
+    }
   },
   "devDependencies": {
-    "@types/jest": "^24.0.18",
-    "@types/node": "^14.14.6",
-    "jest": "^24.1.0",
-    "prettier": "^1.12.1",
-    "ts-jest": "^24.1.0",
-    "ts-node": "^8.4.1",
-    "tslint": "^5.12.0",
-    "tslint-config-prettier": "^1.17.0",
-    "tslint-config-standard": "^8.0.1",
-    "typescript": "^4.0.5"
-  },
-  "jest": {
-    "preset": "ts-jest",
-    "testEnvironment": "node"
-  },
-  "prettier": {
-    "semi": false,
-    "singleQuote": true
+    "electron": "^45.3.2",
+    "electron-builder": "^26.18.0",
+    "playwright-core": "^1.65.0"
   }
 }
